@@ -64,17 +64,12 @@ class BEN_SarOpt_Dataset(Dataset):
         j = int(np.sum(percentages[:id+1]) * len(self.listSar))
         self.listSar = self.listSar[i:j]
 
-        #Read a SAR image to get its size
-        fsar = self.sarPath + '/' + self.listSar[0] + '/' + self.listSar[0] + '_VV.tif'
-        imSar = rioxarray.open_rasterio(fsar)
-        self.sSar = imSar.data.shape
+        #Size of dataset images
+        self.sSar = (2,120,120)
 
         #Same for optical image
-        fopt = self.optPath + '/' + self.listOpt[0] + '/' + self.listOpt[0] + '_B02.tif'
-        imOpt = rioxarray.open_rasterio(fopt)
-        self.sOpt = imOpt.data.shape
+        self.sOpt = (3,120,120)
 
-        #TODO checking here
 
     def __len__(self):
         """
@@ -105,9 +100,9 @@ class BEN_SarOpt_Dataset(Dataset):
             pathIm = self.sarPath + sarImFolder + '/' + sarImFolder + f'_{pol}.tif'
             os.system(f"cp {pathIm} ./temp/")            
             im = rioxarray.open_rasterio("./temp/" + sarImFolder + f'_{pol}.tif')
-            newDataSar[:,:,k] = im[0,:,:]
+            newDataSar[k,:,:] = im[0,:,:]
             os.system(f"rm ./temp/" + sarImFolder + f'_{pol}.tif')
-
+        newDataSar = torch.Tensor(newDataSar)
 
         #Identify the corresponding Optical image
         pathLab = self.sarPath + sarImFolder + '/' + sarImFolder + '_labels_metadata.json'
@@ -120,14 +115,10 @@ class BEN_SarOpt_Dataset(Dataset):
             pathIm = self.optPath + optImFolder + '/' + optImFolder + f'_B0{k}.tif'
             os.system(f"cp {pathIm} ./temp/")            
             im = rioxarray.open_rasterio("./temp/" + optImFolder + f'_B0{k}.tif')
-            newDataOpt[:,:,k-2] = im[0,:,:]/4096.0
+            newDataOpt[k-2,:,:] = im[0,:,:]/4096.0
             os.system(f"rm ./temp/" + optImFolder + f'_B0{k}.tif')
-
-        #Adapt optical images for deep training convenience
-        newDataOpt = torch.Tensor(np.transpose(newDataOpt, (2,0,1)))
+        newDataOpt = torch.Tensor(newDataOpt)
         newDataOpt = -torch.threshold( -newDataOpt, -1, -1)
 
-        #Adapt SAR image for deep training convenience
-        newDataSar = torch.Tensor(np.transpose(newDataSar, (2,0,1)))
 
         return newDataSar, newDataOpt

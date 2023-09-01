@@ -25,7 +25,7 @@ In order to run the code please follow the next steps :
 
 If this work was useful for you, please ensure citing our works : 
 
-*Antoine BRALET, Abdourrahmane ATTO, Jocelyn Chanussot, Emmanuel Trouvé. Impact de la stratégie de décodage sur la traduction de modalité radar-optique d'images de télédétection. GRETSI 2023, Aug 2023, Grenoble, France. ⟨hal-04191879⟩*
+*Bralet, A., Atto, A., Chanussot, J., and Trouve, E. (2023). Impact de la stratégie de décodage sur la traduction de modalité radar-optique d’images de télédétection. In 29° Colloque sur le traitement du signal et des images, number 2023-1309, pages p. 929–932, Grenoble. GRETSI - Groupe de Recherche en Traitement du Signal et des Images*
 
 Thank you for your support
 

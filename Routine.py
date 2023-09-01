@@ -1,8 +1,8 @@
 import torch
 from torch.optim import Adam
 
-from TransNet import SARDINet, Discriminator
-from utils import eval_loop, training_loop, visIm, checkpoint, adversarial_training__loop
+from TransNet import SARDINet
+from utils import eval_loop, training_loop, visIm, checkpoint
 
 from datetime import datetime
 
@@ -88,7 +88,7 @@ class TrainRoutine :
             t1 = datetime.now()
             
             #One step of training
-            TLoss = training_loop(self.dataloader, self.model, self.loss_fn, self.optim, self.batch_size, self.device)
+            TLoss = training_loop(self.dataloader, self.model, self.loss_fn, self.optim, self.device)
             
             #Save metrics
             self.TrainLosses.append(TLoss)
@@ -114,7 +114,7 @@ class TrainRoutine :
                 visIm(self.model, self.dataloader_eval.dataset, e+1, self.saveDir+"Eval/")
 
         #Save the final model
-        checkpoint(self.model, self.TrainLosses, self.EvalLosses, e, self.saveDir)
+        checkpoint(self.model, self.TrainLosses, self.EvalLosses, e+1, self.saveDir)
         visIm(self.model, self.dataloader.dataset, e+1, self.saveDir+"Training/")
         visIm(self.model, self.dataloader_eval.dataset, e+1, self.saveDir+"Eval/")
 

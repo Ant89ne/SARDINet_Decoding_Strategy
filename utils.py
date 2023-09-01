@@ -35,7 +35,9 @@ def getNewMetrics(pred, l, device):
 
     @return:            Fréchet Inception Distance result, Peak Signal to Noise Ratio result, MSE results
     """
-
+    pred = pred.to(device)
+    l = l.to(device)
+    
     #Mean Squared Error calculation
     mse = MeanSquaredError().to(device)
     final_mse = mse(pred, l)
@@ -157,8 +159,10 @@ def eval_loop(dataloader, model, loss_fn, device):
         #Loss calculation
         loss = loss_fn(pred,l)
 
+        
+
         #Get metrics MAE and RMSE
-        fidc, psnrc, msec = getNewMetrics(pred, l)
+        fidc, psnrc, msec = getNewMetrics(pred, l, "cpu")
         fid += fidc
         psnr += psnrc     
         mse += msec

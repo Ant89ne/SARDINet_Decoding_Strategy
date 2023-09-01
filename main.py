@@ -18,7 +18,6 @@ import argparse
 #My own functions
 #My own functions
 from DataLoad import BEN_SarOpt_Dataset
-from TransNet import SARDINet
 from utils import *
 from Routine import TrainRoutine
 
@@ -31,17 +30,17 @@ torch.manual_seed(seed)
 np.random.seed(seed)
 
 #Initialization
-pathInput = "/home/abralet//NAS/Bralet/DataBigEarth200/BigEarthNet-S1-v1.0/"
-pathGT = "/home/abralet//NAS/Bralet/DataBigEarth200/BigEarthNet-v1.0_chosen/"
-outputDir = "/bigdata1/abralet/pilou/"
+pathInput = "/media/bralet/Elements/BigEarthNetTests/BigEarthNet-S1-v1.0/"
+pathGT = "/media/bralet/Elements/BigEarthNetTests/BigEarthNet-v1.0/"
+outputDir = "/home/bralet/Bureau/TestSARDINetDec/"
 
 #Create directory for checkpoints
 currDate = datetime.now()
 saveDir = outputDir + str(currDate).replace(' ', '_').replace(':',"-") + "/" 
 checkDir(saveDir)
 
-device = "cuda" if (torch.cuda.is_available()) else "cpu"      #Whether to use gpu or cpu
-num_workers = 40 #Number of subprocesses in parallel to load data
+device = "cuda" if (torch.cuda.is_available()) else "cpu"       #Whether to use gpu or cpu
+num_workers = 10                                                #Number of subprocesses in parallel to load data
 
 paths = {
     "pathInput" : pathInput,
@@ -53,9 +52,9 @@ paths = {
 #                     HYPERPARAMETERS                       #
 #############################################################
 
-epochs = 30                     #Number of epochs
+epochs = 10                     #Number of epochs
 percentages = [0.7,0.2,0.1]     #Percentage of training and evaluation
-batch_size = 8                 #Batch size
+batch_size = 2                 #Batch size
 lr = 5e-5                  #learning rate for SARDINet
 
 hyperparameters = {
@@ -72,9 +71,9 @@ hyperparameters = {
 d_train = BEN_SarOpt_Dataset(pathInput, pathGT, percentages, 0)         #Training dataset
 d_evalu = BEN_SarOpt_Dataset(pathInput, pathGT, percentages, 1)         #Evaluation dataset
 d_tests = BEN_SarOpt_Dataset(pathInput, pathGT, percentages, 2)         #Test dataset
-dataloader = DataLoader(d_train, 1, shuffle = True, num_workers = num_workers)                                                             #Training dataloader
-dataloader_eval = DataLoader(d_evalu, 1, shuffle = False)                                                       #Evaluation dataloader
-dataloader_test = DataLoader(d_tests, 1, shuffle = False)
+dataloader = DataLoader(d_train, batch_size=batch_size, shuffle = True, num_workers = num_workers)                                                             #Training dataloader
+dataloader_eval = DataLoader(d_evalu, batch_size=batch_size, shuffle = False, num_workers=num_workers)                                                       #Evaluation dataloader
+dataloader_test = DataLoader(d_tests, batch_size=batch_size, shuffle = False)
 
 dataloaders = {
     "dataloader": dataloader,
