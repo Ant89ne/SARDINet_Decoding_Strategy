@@ -13,7 +13,6 @@ import numpy as np
 import random
 import rioxarray
 import json
-from PIL import Image
 
 
 #Project librairies
@@ -63,7 +62,7 @@ class BEN_SarOpt_Dataset(Dataset):
         i = int(np.sum(percentages[:id])*len(self.listSar))
         j = int(np.sum(percentages[:id+1]) * len(self.listSar))
         self.listSar = self.listSar[i:j]
-        self.listSar = self.listSar[:10000]
+
         #Size of dataset images
         self.sSar = (2,120,120)
 
@@ -101,7 +100,7 @@ class BEN_SarOpt_Dataset(Dataset):
             pathIm = self.sarPath + sarImFolder + '/' + sarImFolder + f'_{pol}.tif'
             os.system(f"cp {pathIm} ./temp/")            
             im = rioxarray.open_rasterio("./temp/" + sarImFolder + f'_{pol}.tif')
-            newDataSar[k,:,:] = im[:,:]
+            newDataSar[k,:,:] = im[0,:,:]
             os.system(f"rm ./temp/" + sarImFolder + f'_{pol}.tif')
         newDataSar = torch.Tensor(newDataSar)
 
@@ -114,10 +113,10 @@ class BEN_SarOpt_Dataset(Dataset):
         #Read the optical image
         for k in range(2,5):
             pathIm = self.optPath + optImFolder + '/' + optImFolder + f'_B0{k}.tif'
-            #os.system(f"cp {pathIm} ./temp/")            
-            im = np.array(Image.open(pathIm)) #rioxarray.open_rasterio(pathIm)#"./temp/" + optImFolder + f'_B0{k}.tif')
-            newDataOpt[k-2,:,:] = im[:,:]/4096.0
-            #os.system(f"rm ./temp/" + optImFolder + f'_B0{k}.tif')
+            os.system(f"cp {pathIm} ./temp/")            
+            im = rioxarray.open_rasterio("./temp/" + optImFolder + f'_B0{k}.tif')
+            newDataOpt[k-2,:,:] = im[0,:,:]/4096.0
+            os.system(f"rm ./temp/" + optImFolder + f'_B0{k}.tif')
         newDataOpt = torch.Tensor(newDataOpt)
         newDataOpt = -torch.threshold( -newDataOpt, -1, -1)
 
