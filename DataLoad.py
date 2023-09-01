@@ -87,20 +87,21 @@ class BEN_SarOpt_Dataset(Dataset):
 
         @return:        Couple of SAR-Optical images corresponding to the same zone
         """
-
+        
         #Read the selected radar image
         sarImFolder = self.listSar[index]
-
+        
+        
         #Initialize output images
         newDataOpt = np.zeros(self.sOpt)
         newDataSar = np.zeros(self.sSar)
-
+        
         #Read SAR images
         for k, pol in enumerate(["VH","VV"]):
             pathIm = self.sarPath + sarImFolder + '/' + sarImFolder + f'_{pol}.tif'
             os.system(f"cp {pathIm} ./temp/")            
             im = rioxarray.open_rasterio("./temp/" + sarImFolder + f'_{pol}.tif')
-            newDataSar[k,:,:] = im[0,:,:]
+            newDataSar[k,:,:] = im[:,:]
             os.system(f"rm ./temp/" + sarImFolder + f'_{pol}.tif')
         newDataSar = torch.Tensor(newDataSar)
 
@@ -109,7 +110,7 @@ class BEN_SarOpt_Dataset(Dataset):
         a = open(pathLab, "r")
         labs = json.load(a)
         optImFolder = labs["corresponding_s2_patch"]
-
+        
         #Read the optical image
         for k in range(2,5):
             pathIm = self.optPath + optImFolder + '/' + optImFolder + f'_B0{k}.tif'
@@ -119,6 +120,5 @@ class BEN_SarOpt_Dataset(Dataset):
             os.system(f"rm ./temp/" + optImFolder + f'_B0{k}.tif')
         newDataOpt = torch.Tensor(newDataOpt)
         newDataOpt = -torch.threshold( -newDataOpt, -1, -1)
-
 
         return newDataSar, newDataOpt

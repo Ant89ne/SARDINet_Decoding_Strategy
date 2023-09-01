@@ -69,7 +69,6 @@ class TrainRoutine :
         """
         Function used to train the network in its whole
         """
-
         currDate = datetime.now()
 
         #Evaluation of the untrained network
@@ -83,12 +82,11 @@ class TrainRoutine :
 
             #Move network to the selected device
             self.model.to(self.device)
-
             #Time measurement
             t1 = datetime.now()
             
             #One step of training
-            TLoss = training_loop(self.dataloader, self.model, self.loss_fn, self.optim, self.device)
+            TLoss = training_loop(self.dataloader, self.model, self.loss_fn, self.optim, self.device, fid_on = False)
             
             #Save metrics
             self.TrainLosses.append(TLoss)
@@ -97,7 +95,7 @@ class TrainRoutine :
             t2 = datetime.now()
             
             #Evaluate the training
-            ELoss = eval_loop(self.dataloader_eval, self.model, self.loss_fn, self.device)
+            ELoss = eval_loop(self.dataloader_eval, self.model, self.loss_fn, self.device, fid_on = False)
             
             #Save metrics
             self.EvalLosses.append(ELoss)
@@ -128,5 +126,5 @@ class TrainRoutine :
         Function used to test the model
         """
         self.model.to(self.device)
-        TestLoss = eval_loop(self.dataloader_test, self.model, self.loss_fn, self.device)
+        TestLoss = eval_loop(self.dataloader_test, self.model, self.loss_fn, self.device, fid_on=True)
         visIm(self.model, self.dataloader_test.dataset, -1, self.saveDir+"Test/", nbIm = -1)

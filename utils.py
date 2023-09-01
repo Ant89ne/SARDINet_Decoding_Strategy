@@ -26,12 +26,13 @@ import tqdm
 #                    METRICS FUNCTIONS                      #
 #############################################################
 
-def getNewMetrics(pred, l, device):
+def getNewMetrics(pred, l, device, fid_on = False):
     """
     Function used to get the metrics to evaluate the performances of the network
     @input pred:        Prediction made by SARDINet
     @input l:           Ground truth labels
     @input device:      Whether "cpu" or "cuda", device on which to compute the metrics
+    @input fid:         Whether to compute FID or not (time consuming during training)
 
     @return:            Fréchet Inception Distance result, Peak Signal to Noise Ratio result, MSE results
     """
@@ -47,10 +48,13 @@ def getNewMetrics(pred, l, device):
     l = (255*l).to(dtype = torch.uint8)
 
     #Fréchet Inception Distance calculation
-    fid = FrechetInceptionDistance(feature = 64).to(device)
-    fid.update(pred, False)
-    fid.update(l, True)
-    final_fid = fid.compute()
+    if fid_on :
+        fid = FrechetInceptionDistance(feature = 64).to(device)
+        fid.update(pred, False)
+        fid.update(l, True)
+        final_fid = fid.compute()
+    else : 
+        final_fid = torch.ones(1)*-1
 
     #Peak Signal to Noise Ratio calculation
     psnr = PeakSignalNoiseRatio().to(device)
@@ -63,7 +67,7 @@ def getNewMetrics(pred, l, device):
 #                    TRAINING LOOPS                         #
 #############################################################
 
-def training_loop(dataloader, model, loss_fn, optimizer, device = "cpu"):
+def training_loop(dataloader, model, loss_fn, optimizer, device = "cpu", fid_on = False):
     """
     Training loop for classical network
     @input dalaoader :          Dataloader to be used
@@ -71,7 +75,8 @@ def training_loop(dataloader, model, loss_fn, optimizer, device = "cpu"):
     @input loss_fn :            Loss to be minimized
     @input optimizer :          Optimizer to be used
     @input device :             Device to be used (default : cpu)
-    
+    @input fid:                 Whether to compute FID metric or not (time consuming during training)
+
     @return :                   Loss and metrics (MSE, PSNR and FID) on training data
     """
     
@@ -91,13 +96,12 @@ def training_loop(dataloader, model, loss_fn, optimizer, device = "cpu"):
         #Copy data and label to the selected device
         d = d.to(device)
         l = l.to(device)
-
+        
         #Prediction
         pred = model(d)
-
+        
         #Loss calculation        
         loss = loss_fn(pred,l)
-
         #Save Loss
         TLoss += loss.item()
 
@@ -105,11 +109,11 @@ def training_loop(dataloader, model, loss_fn, optimizer, device = "cpu"):
         loss.backward()
         
         #Metrics calculation
-        fidc, psnrc, msec = getNewMetrics(pred, l, "cpu")
+        fidc, psnrc, msec = getNewMetrics(pred, l, "cuda", fid_on = fid_on)
         fid += fidc
         psnr += psnrc
         mse += msec
-
+        
         #Optimization when batches are ready
         optimizer.step()
 
@@ -129,7 +133,7 @@ def training_loop(dataloader, model, loss_fn, optimizer, device = "cpu"):
 #                   EVALUATION LOOPS                        #
 #############################################################
 
-def eval_loop(dataloader, model, loss_fn, device):
+def eval_loop(dataloader, model, loss_fn, device, fid_on = False):
     """
     Main loop routine for the evaluation of the network
 
@@ -137,6 +141,7 @@ def eval_loop(dataloader, model, loss_fn, device):
     @input model :              Model to be evaluated
     @input loss_fn :            Loss used for training
     @input device :             Device to be used
+    @input fid:                 Whether to compute FID metric or not (time consuming during training)
 
     @return :                   Loss and metrics (MSE, PSNR, FID) on the evaluation dataset
     """
@@ -144,11 +149,11 @@ def eval_loop(dataloader, model, loss_fn, device):
     #Switch to evaluation mode
     model.eval()
     ELoss = 0
-    mse, psnr, fid = 0,0, 0
+    mse, psnr, fid = 0,0,0
 
     #Routine
     for i, (d, l) in enumerate(tqdm.tqdm(dataloader)) :
-
+        
         #Copy images and ground truth on selected device
         d = d.to(device)
         l = l.to(device)
@@ -159,10 +164,8 @@ def eval_loop(dataloader, model, loss_fn, device):
         #Loss calculation
         loss = loss_fn(pred,l)
 
-        
-
         #Get metrics MAE and RMSE
-        fidc, psnrc, msec = getNewMetrics(pred, l, "cpu")
+        fidc, psnrc, msec = getNewMetrics(pred, l, "cuda", fid_on = fid_on)
         fid += fidc
         psnr += psnrc     
         mse += msec
