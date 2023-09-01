@@ -30,9 +30,9 @@ torch.manual_seed(seed)
 np.random.seed(seed)
 
 #Initialization
-pathInput = "/media/bralet/Elements/BigEarthNetTests/BigEarthNet-S1-v1.0/"
-pathGT = "/media/bralet/Elements/BigEarthNetTests/BigEarthNet-v1.0/"
-outputDir = "/home/bralet/Bureau/TestSARDINetDec/"
+pathInput = "/home/abralet/NAS/Bralet/DataBigEarth200/BigEarthNet-S1-v1.0/"
+pathGT = "/home/abralet/NAS/Bralet/DataBigEarth200/BigEarthNet-v1.0_chosen/"
+outputDir = "/bigdata1/abralet/TestSARDINetDec/"
 
 #Create directory for checkpoints
 currDate = datetime.now()
@@ -40,8 +40,8 @@ saveDir = outputDir + str(currDate).replace(' ', '_').replace(':',"-") + "/"
 checkDir(saveDir)
 
 device = "cuda" if (torch.cuda.is_available()) else "cpu"       #Whether to use gpu or cpu
-num_workers = 10                                                #Number of subprocesses in parallel to load data
-
+num_workers = 40                                                #Number of subprocesses in parallel to load data
+print(device)
 paths = {
     "pathInput" : pathInput,
     "pathGT" : pathGT,
@@ -54,7 +54,7 @@ paths = {
 
 epochs = 10                     #Number of epochs
 percentages = [0.7,0.2,0.1]     #Percentage of training and evaluation
-batch_size = 2                 #Batch size
+batch_size = 8                 #Batch size
 lr = 5e-5                  #learning rate for SARDINet
 
 hyperparameters = {
